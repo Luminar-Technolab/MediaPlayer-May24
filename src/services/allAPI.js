@@ -44,3 +44,18 @@ export const getCategoryAPI = async ()=>{
 export const removeCategoryAPI = async (categoryId)=>{
    return await commonAPI("DELETE",`${serverUrl}/categories/${categoryId}`,{})
 }
+
+//get single video API 
+export const getSingleVideoAPI = async (id)=>{
+   return await commonAPI("GET",`${serverUrl}/allVideos/${id}`,"")
+}
+
+//update category api
+export const updateCategoryAPI = async (categoryId,categoryDetails)=>{
+   return await commonAPI("PUT",`${serverUrl}/categories/${categoryId}`,categoryDetails)
+}
+
+//get single category API called by View compoent
+export const getSingleCategoryAPI = async (id)=>{
+   return await commonAPI("GET",`${serverUrl}/categories/${id}`,"")
+}

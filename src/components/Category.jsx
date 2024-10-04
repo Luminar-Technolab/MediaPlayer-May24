@@ -2,16 +2,17 @@ import React,{useEffect, useState} from 'react'
 import { Modal,Button,Form,FloatingLabel } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { addCategoryAPI, getCategoryAPI, removeCategoryAPI } from '../services/allAPI';
+import { addCategoryAPI, getCategoryAPI, getSingleVideoAPI, removeCategoryAPI, removeVideoAPI, updateCategoryAPI } from '../services/allAPI';
+import VideoCard from './VideoCard'
 
-const Category = () => {
+const Category = ({removeCategoryVideoResponseFromView,setRemoveVideoResponseFromCategory}) => {
   const [allCategory,setAllCategory] = useState([])
   const [categoryName,setCategoryName] = useState("")
   const [show, setShow] = useState(false);
 
   useEffect(()=>{
     getAllCategory()
-  },[])
+  },[removeCategoryVideoResponseFromView])
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -41,8 +42,32 @@ const Category = () => {
     await removeCategoryAPI(categoryId)
     getAllCategory()
   }
+  const dragOverCategory = e=>{
+    e.preventDefault()
+  }
+  const videoDropped = async (e,categoryId)=>{
+    const videoId =e.dataTransfer.getData("vId")
+    console.log(`Video id: ${videoId} dropped inside category id : ${categoryId}`);
+    //add video to category
+    //get details of video to be added in the category
+    const {data} = await getSingleVideoAPI(videoId)
+    console.log(data);
+    let selectedCategory = allCategory?.find(item=>item.id==categoryId)
+    selectedCategory.allVideos.push(data)
+    console.log(selectedCategory);
+    //save updated category to json server categories using api call
+    await updateCategoryAPI(categoryId,selectedCategory)
+    //remove video from json server allVideos using api
+    const result = await removeVideoAPI(videoId)
+    setRemoveVideoResponseFromCategory(result)
+    getAllCategory()
+  }
   
-  
+  const categoryVideoDragStart = (e,video,categoryId)=>{
+    console.log(`Video with id : ${video.id} from category id: ${categoryId} dragging started from Category Component`);
+    let dataShare = {categoryId,video}
+    e.dataTransfer.setData("dataShare",JSON.stringify(dataShare))
+  }
   return (
     <>
       <div className="d-flex justify-content-around">
@@ -54,15 +79,21 @@ const Category = () => {
        {
         allCategory.length>0?
           allCategory?.map(categoryDetails=>(
-            <div className="border rounded p-3 mb-2">
+            <div droppable="true" onDragOver={e=>dragOverCategory(e)} onDrop={e=>videoDropped(e,categoryDetails?.id)} key={categoryDetails?.id} className="border rounded p-3 mb-2">
               <div className="d-flex justify-content-between">
                 <h5>{categoryDetails?.categoryName}</h5>
                 <button onClick={()=>removeCategory(categoryDetails?.id)} className="btn"><i className="fa-solid fa-trash text-danger"></i></button>
               </div>
               <div className="row mt-2">
-                <div className="col-lg-6">
-                  {/* videos of particular category */}
-                </div>
+                {
+                  categoryDetails?.allVideos?.length>0 &&
+                    categoryDetails?.allVideos?.map(video=>(
+                      <div draggable={true} onDragStart={e=>categoryVideoDragStart(e,video,categoryDetails?.id)} key={video?.id} className="col-md-4">
+                        {/* videos of particular category */}
+                        <VideoCard displayData={video} insideCategory={true}/>
+                      </div>
+                    ))
+                }
               </div>
             </div>
           ))

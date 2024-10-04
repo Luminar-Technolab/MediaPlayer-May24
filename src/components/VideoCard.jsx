@@ -2,7 +2,7 @@ import React,{useState} from 'react'
 import { Card,Modal } from 'react-bootstrap'
 import { removeVideoAPI, storeHistoryAPI } from '../services/allAPI';
 
-const VideoCard = ({displayData,setDeleteVideoResponse}) => {
+const VideoCard = ({displayData,setDeleteVideoResponse,insideCategory}) => {
   console.log(displayData);
   
   const [show, setShow] = useState(false);
@@ -25,14 +25,22 @@ const VideoCard = ({displayData,setDeleteVideoResponse}) => {
     // pass response to view compoenet (child to parent)
     setDeleteVideoResponse(result?.data)
   }
+  const videoDragStart = (e,videoId)=>{
+    console.log(`Dragging started with video id : ${videoId}`);
+    //share video id along with ondragstart event 
+    e.dataTransfer.setData("vId",videoId)    
+  }
   return (
     <>
-      <Card style={{height:'250px'}}>
+      <Card draggable={true} onDragStart={e=>videoDragStart(e,displayData?.id)} style={{height:'250px'}}>
         <Card.Img onClick={handleShow} variant="top" height={'150px'} src={displayData?.url} />
         <Card.Body>
           <Card.Text className='d-flex justify-content-between '>
             <p>{displayData?.caption}</p>
-            <button onClick={()=>removeVideo(displayData?.id)} className='btn'> <i className="fa-solid fa-trash text-danger"></i> </button>
+            { 
+            !insideCategory &&
+             <button onClick={()=>removeVideo(displayData?.id)} className='btn'> <i className="fa-solid fa-trash text-danger"></i> </button>
+            }
           </Card.Text>
         </Card.Body>
       </Card>

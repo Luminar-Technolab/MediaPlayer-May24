@@ -1,3 +1,3 @@
-const serverUrl = "http://localhost:3000"
+const serverUrl = "https://mpservser-may24.onrender.com"
 
 export default serverUrl
